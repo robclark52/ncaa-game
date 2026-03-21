@@ -93,8 +93,8 @@ function simulateTournament(auctionData, k, forcedWinner) {
     const regions = buildBracket(auctionData);
     const regionNames = Object.keys(regions);
 
-    // Reset round wins for this sim
-    const teamsCopy = auctionData.map(t => ({...t, simPoints: 0}));
+    // Reset round wins for this sim (clear real-tournament roundWins)
+    const teamsCopy = auctionData.map(t => ({...t, simPoints: 0, roundWins: 0}));
     const regionsCopy = buildBracket(teamsCopy);
 
     // Simulate each region
