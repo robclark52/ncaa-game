@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCAA Auction Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <h1>NCAA Auction Game</h1>
+            <p class="subtitle">Bob &bull; Jud &bull; Fletch</p>
+        </div>
+        <nav>
+            <button class="nav-btn active" data-view="current">2026 Tournament</button>
+            <button class="nav-btn" data-view="simulation">Simulation</button>
+            <button class="nav-btn" data-view="history">History</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Current Year View -->
+        <section id="view-current" class="view active">
+            <div class="scoreboard">
+                <div class="player-score jud-bg">
+                    <div class="player-name">Jud</div>
+                    <div class="player-points" id="jud-points">--</div>
+                    <div class="player-detail">
+                        <span id="jud-spent">--</span> spent &bull; <span id="jud-teams">--</span> teams
+                    </div>
+                </div>
+                <div class="player-score bob-bg">
+                    <div class="player-name">Bob</div>
+                    <div class="player-points" id="bob-points">--</div>
+                    <div class="player-detail">
+                        <span id="bob-spent">--</span> spent &bull; <span id="bob-teams">--</span> teams
+                    </div>
+                </div>
+                <div class="player-score fletch-bg">
+                    <div class="player-name">Fletch</div>
+                    <div class="player-points" id="fletch-points">--</div>
+                    <div class="player-detail">
+                        <span id="fletch-spent">--</span> spent &bull; <span id="fletch-teams">--</span> teams
+                    </div>
+                </div>
+            </div>
+
+            <h2>Auction Results</h2>
+            <div class="table-wrap">
+                <table id="auction-table">
+                    <thead>
+                        <tr>
+                            <th>Opener</th>
+                            <th>Region</th>
+                            <th>Seed</th>
+                            <th>Team</th>
+                            <th>Owner</th>
+                            <th>Price</th>
+                            <th>RPI</th>
+                            <th>Rd 1</th>
+                            <th>Rd 2</th>
+                            <th>S16</th>
+                            <th>E8</th>
+                            <th>F4</th>
+                            <th>Champ</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auction-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Simulation View -->
+        <section id="view-simulation" class="view">
+            <div class="sim-controls">
+                <h2>Monte Carlo Simulation</h2>
+                <p class="sim-desc">Simulate the remaining tournament games using RPI-based win probabilities.</p>
+                <div class="sim-options">
+                    <label>
+                        Number of simulations:
+                        <select id="sim-count">
+                            <option value="1000">1,000</option>
+                            <option value="5000">5,000</option>
+                            <option value="10000" selected>10,000</option>
+                            <option value="50000">50,000</option>
+                        </select>
+                    </label>
+                    <label>
+                        RPI scaling factor (k):
+                        <input type="number" id="sim-k" value="10" min="1" max="50" step="1">
+                        <span class="help-text">Higher = more upsets</span>
+                    </label>
+                    <button id="run-sim" class="btn-primary">Run Simulation</button>
+                </div>
+            </div>
+
+            <div id="sim-progress" class="hidden">
+                <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+                <span id="progress-text">Running...</span>
+            </div>
+
+            <div id="sim-results" class="hidden">
+                <div class="scoreboard sim-scoreboard">
+                    <div class="player-score jud-bg">
+                        <div class="player-name">Jud</div>
+                        <div class="sim-win-pct" id="sim-jud-pct">--</div>
+                        <div class="player-detail">Win probability</div>
+                        <div class="sim-ev" id="sim-jud-ev">E[pts]: --</div>
+                    </div>
+                    <div class="player-score bob-bg">
+                        <div class="player-name">Bob</div>
+                        <div class="sim-win-pct" id="sim-bob-pct">--</div>
+                        <div class="player-detail">Win probability</div>
+                        <div class="sim-ev" id="sim-bob-ev">E[pts]: --</div>
+                    </div>
+                    <div class="player-score fletch-bg">
+                        <div class="player-name">Fletch</div>
+                        <div class="sim-win-pct" id="sim-fletch-pct">--</div>
+                        <div class="player-detail">Win probability</div>
+                        <div class="sim-ev" id="sim-fletch-ev">E[pts]: --</div>
+                    </div>
+                </div>
+
+                <h3>Championship Probabilities by Team</h3>
+                <div class="table-wrap">
+                    <table id="sim-team-table">
+                        <thead>
+                            <tr>
+                                <th>Team</th>
+                                <th>Owner</th>
+                                <th>Seed</th>
+                                <th>RPI</th>
+                                <th>Champ %</th>
+                                <th>Final 4 %</th>
+                                <th>E[Points]</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sim-team-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- History View -->
+        <section id="view-history" class="view">
+            <h2>All-Time Results</h2>
+            <div class="all-time-summary" id="all-time-summary"></div>
+            <h3>Year-by-Year</h3>
+            <div class="table-wrap">
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th class="jud-header">Jud</th>
+                            <th class="bob-header">Bob</th>
+                            <th class="fletch-header">Fletch</th>
+                            <th>Winner</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>The NCAA Auction Game &mdash; since 2002</p>
+    </footer>
+
+    <script src="rpi-data.js"></script>
+    <script src="simulation.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
