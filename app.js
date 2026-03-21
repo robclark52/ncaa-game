@@ -145,24 +145,14 @@ function parseHistoryData(rows) {
     // Row 4: Points values
     // Then year rows follow
 
-    // Find summary rows (first rows with just numbers in cols 2-4 and no year in col 1)
+    // Find summary rows and year rows
     let summaryIdx = 0;
     const summaryLabels = ['wins', 'second', 'third', 'points'];
-    for (let i = 0; i < rows.length && summaryIdx < 4; i++) {
+    for (let i = 0; i < rows.length; i++) {
         const col1 = (rows[i][1] || '').trim();
         const col2 = (rows[i][2] || '').trim();
-        // Skip header row
-        if (col1.includes('Summary') || col1 === 'Jud' || col1 === '') {
-            if (col2 !== '' && col2 !== 'Jud' && !isNaN(parseInt(col2))) {
-                const label = summaryLabels[summaryIdx];
-                history.summary.Jud[label] = parseInt(rows[i][2]) || 0;
-                history.summary.Bob[label] = parseInt(rows[i][3]) || 0;
-                history.summary.Fletch[label] = parseInt(rows[i][4]) || 0;
-                summaryIdx++;
-            }
-            continue;
-        }
-        // Check if this is a year row
+
+        // Check if this is a year row first
         const year = parseInt(col1);
         if (year >= 2000 && year <= 2030) {
             const jud = (rows[i][2] || '').trim();
@@ -170,8 +160,11 @@ function parseHistoryData(rows) {
             const fletch = (rows[i][4] || '').trim();
 
             if (jud === '' && bob === '' && fletch === '') {
-                // No data year
-                history.years.push({ year, jud: null, bob: null, fletch: null, note: 'No data', winner: null });
+                // Hardcoded known winners for years without score data
+                const knownWinners = { 2002: 'Jud' };
+                const note = knownWinners[year] ? knownWinners[year] + ' won' : 'No data';
+                const winner = knownWinners[year] || null;
+                history.years.push({ year, jud: null, bob: null, fletch: null, note, winner });
             } else {
                 const judPts = parseInt(jud) || 0;
                 const bobPts = parseInt(bob) || 0;
@@ -186,6 +179,18 @@ function parseHistoryData(rows) {
                     winner = winners.join(' / ');
                 }
                 history.years.push({ year, jud: judPts, bob: bobPts, fletch: fletchPts, winner });
+            }
+            continue;
+        }
+
+        // Summary rows: blank col1 with numbers in col2
+        if (summaryIdx < 4 && (col1.includes('Summary') || col1 === 'Jud' || col1 === '')) {
+            if (col2 !== '' && col2 !== 'Jud' && !isNaN(parseInt(col2))) {
+                const label = summaryLabels[summaryIdx];
+                history.summary.Jud[label] = parseInt(rows[i][2]) || 0;
+                history.summary.Bob[label] = parseInt(rows[i][3]) || 0;
+                history.summary.Fletch[label] = parseInt(rows[i][4]) || 0;
+                summaryIdx++;
             }
         }
     }
@@ -342,6 +347,21 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 // Global state
 let auctionData = [];
 
+// Populate force winner dropdown with loaded teams
+function populateForceWinner(teams) {
+    const select = document.getElementById('sim-force-winner');
+    // Keep the "None" option, clear the rest
+    select.innerHTML = '<option value="">None</option>';
+    // Sort by seed then team name
+    const sorted = [...teams].sort((a, b) => a.seed - b.seed || a.team.localeCompare(b.team));
+    for (const t of sorted) {
+        const opt = document.createElement('option');
+        opt.value = t.team;
+        opt.textContent = `${t.seed} ${t.team} (${t.owner})`;
+        select.appendChild(opt);
+    }
+}
+
 // Simulation button
 document.getElementById('run-sim').addEventListener('click', async () => {
     if (auctionData.length === 0) {
@@ -351,6 +371,7 @@ document.getElementById('run-sim').addEventListener('click', async () => {
 
     const numSims = parseInt(document.getElementById('sim-count').value);
     const k = parseFloat(document.getElementById('sim-k').value);
+    const forcedWinner = document.getElementById('sim-force-winner').value || null;
     const btn = document.getElementById('run-sim');
     const progressDiv = document.getElementById('sim-progress');
     const progressFill = document.getElementById('progress-fill');
@@ -359,14 +380,12 @@ document.getElementById('run-sim').addEventListener('click', async () => {
     btn.disabled = true;
     progressDiv.classList.remove('hidden');
 
-    // Filter to only active (non-eliminated) teams for simulation
-    // For eliminated teams, their points are already locked in
     const simData = auctionData.map(t => ({...t}));
 
     const results = await runMonteCarlo(simData, numSims, k, (pct) => {
         progressFill.style.width = (pct * 100) + '%';
         progressText.textContent = `Running... ${Math.round(pct * 100)}%`;
-    });
+    }, forcedWinner);
 
     progressText.textContent = `Complete! (${numSims.toLocaleString()} simulations)`;
     btn.disabled = false;
@@ -381,6 +400,7 @@ async function loadData() {
         auctionData = parseAuctionData(auctionRows);
         renderScoreboard(auctionData);
         renderAuctionTable(auctionData);
+        populateForceWinner(auctionData);
 
         // Load history
         const historyRows = await fetchCSV(sheetCSVUrl('History'));

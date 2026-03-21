@@ -91,8 +91,14 @@
                     </label>
                     <label>
                         RPI scaling factor (k):
-                        <input type="number" id="sim-k" value="10" min="1" max="50" step="1">
-                        <span class="help-text">Higher = more upsets</span>
+                        <input type="number" id="sim-k" value="7" min="1" max="50" step="1">
+                        <span class="help-text">Lower = fewer upsets</span>
+                    </label>
+                    <label>
+                        Force Tournament Winner:
+                        <select id="sim-force-winner">
+                            <option value="">None</option>
+                        </select>
                     </label>
                     <button id="run-sim" class="btn-primary">Run Simulation</button>
                 </div>

@@ -5,7 +5,7 @@ const ROUND_POINTS = [5, 10, 15, 20, 25, 30]; // R64, R32, S16, E8, F4, NCG
 
 // Logistic win probability: P(A beats B) = 1 / (1 + 10^((rpiB - rpiA) * k))
 // k controls sensitivity: higher k = smaller RPI gaps matter more
-function winProbability(rpiA, rpiB, k = 10) {
+function winProbability(rpiA, rpiB, k = 7) {
     if (rpiA === null || rpiB === null) {
         // Fallback: 50/50 if no RPI data
         return 0.5;
@@ -38,8 +38,12 @@ const SEED_MATCHUPS = [
     [6, 11], [3, 14], [7, 10], [2, 15]
 ];
 
-// Simulate a single game
-function simGame(teamA, teamB, k) {
+// Simulate a single game (forcedWinner = team name that always wins, or null)
+function simGame(teamA, teamB, k, forcedWinner) {
+    if (forcedWinner) {
+        if (teamA.team === forcedWinner) return teamA;
+        if (teamB.team === forcedWinner) return teamB;
+    }
     const rpiA = teamA.rpi !== null ? teamA.rpi : 0.5;
     const rpiB = teamB.rpi !== null ? teamB.rpi : 0.5;
     const pA = winProbability(rpiA, rpiB, k);
@@ -47,7 +51,7 @@ function simGame(teamA, teamB, k) {
 }
 
 // Simulate a single region through Elite 8
-function simRegion(regionTeams, k) {
+function simRegion(regionTeams, k, forcedWinner) {
     // Round of 64
     let r32 = [];
     for (const [seedA, seedB] of SEED_MATCHUPS) {
@@ -57,7 +61,7 @@ function simRegion(regionTeams, k) {
             r32.push(a || b);
             continue;
         }
-        const winner = simGame(a, b, k);
+        const winner = simGame(a, b, k, forcedWinner);
         winner.roundWins = (winner.roundWins || 0) + 1;
         r32.push(winner);
     }
@@ -65,7 +69,7 @@ function simRegion(regionTeams, k) {
     // Round of 32
     let s16 = [];
     for (let i = 0; i < r32.length; i += 2) {
-        const winner = simGame(r32[i], r32[i + 1], k);
+        const winner = simGame(r32[i], r32[i + 1], k, forcedWinner);
         winner.roundWins = (winner.roundWins || 0) + 1;
         s16.push(winner);
     }
@@ -73,19 +77,19 @@ function simRegion(regionTeams, k) {
     // Sweet 16
     let e8 = [];
     for (let i = 0; i < s16.length; i += 2) {
-        const winner = simGame(s16[i], s16[i + 1], k);
+        const winner = simGame(s16[i], s16[i + 1], k, forcedWinner);
         winner.roundWins = (winner.roundWins || 0) + 1;
         e8.push(winner);
     }
 
     // Elite 8
-    const regionWinner = simGame(e8[0], e8[1], k);
+    const regionWinner = simGame(e8[0], e8[1], k, forcedWinner);
     regionWinner.roundWins = (regionWinner.roundWins || 0) + 1;
     return regionWinner;
 }
 
-// Simulate entire tournament, respecting already-known results
-function simulateTournament(auctionData, k, knownResults) {
+// Simulate entire tournament
+function simulateTournament(auctionData, k, forcedWinner) {
     const regions = buildBracket(auctionData);
     const regionNames = Object.keys(regions);
 
@@ -96,19 +100,17 @@ function simulateTournament(auctionData, k, knownResults) {
     // Simulate each region
     const f4 = [];
     for (const rName of regionNames) {
-        f4.push(simRegion(regionsCopy[rName], k));
+        f4.push(simRegion(regionsCopy[rName], k, forcedWinner));
     }
 
     // Final Four pairings: standard NCAA bracket
-    // W vs E (regions 0 vs 1), MW vs S (regions 2 vs 3)
-    // If region order doesn't match, just pair first two vs last two
-    const semi1 = simGame(f4[0], f4[3], k);
+    const semi1 = simGame(f4[0], f4[3], k, forcedWinner);
     semi1.roundWins = (semi1.roundWins || 0) + 1;
-    const semi2 = simGame(f4[1], f4[2], k);
+    const semi2 = simGame(f4[1], f4[2], k, forcedWinner);
     semi2.roundWins = (semi2.roundWins || 0) + 1;
 
     // Championship
-    const champion = simGame(semi1, semi2, k);
+    const champion = simGame(semi1, semi2, k, forcedWinner);
     champion.roundWins = (champion.roundWins || 0) + 1;
 
     // Calculate points for all teams
@@ -131,7 +133,7 @@ function simulateTournament(auctionData, k, knownResults) {
 }
 
 // Run Monte Carlo simulation
-function runMonteCarlo(auctionData, numSims, k, onProgress) {
+function runMonteCarlo(auctionData, numSims, k, onProgress, forcedWinner) {
     const teamStats = {};
     const playerWins = { Jud: 0, Bob: 0, Fletch: 0 };
     const playerPoints = { Jud: 0, Bob: 0, Fletch: 0 };
@@ -156,22 +158,18 @@ function runMonteCarlo(auctionData, numSims, k, onProgress) {
         function runBatch() {
             const end = Math.min(completed + batchSize, numSims);
             for (let i = completed; i < end; i++) {
-                const result = simulateTournament(auctionData, k, null);
+                const result = simulateTournament(auctionData, k, forcedWinner);
 
                 // Tally player points for this sim
+                // The sim re-simulates all rounds, so data.points is the full
+                // tournament points for that team. Sum always = 600.
                 const simPlayerPts = { Jud: 0, Bob: 0, Fletch: 0 };
                 for (const [team, data] of Object.entries(result)) {
                     const teamInfo = auctionData.find(t => t.team === team);
                     if (!teamInfo) continue;
                     const owner = teamInfo.owner;
 
-                    // Add known points (already scored) + simulated points
-                    const knownPts = teamInfo.knownPoints || 0;
-                    // For teams already eliminated, just use known points
-                    // For active teams, use sim points
-                    const totalPts = teamInfo.eliminated ? knownPts : knownPts + data.points;
-
-                    simPlayerPts[owner] = (simPlayerPts[owner] || 0) + totalPts;
+                    simPlayerPts[owner] = (simPlayerPts[owner] || 0) + data.points;
 
                     teamStats[team].totalPoints += data.points;
                     if (data.isChampion) teamStats[team].champCount++;
