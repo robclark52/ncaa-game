@@ -444,10 +444,24 @@ function parseRoundFromNote(note) {
     return -1;
 }
 
+// Normalize team name: "State" ↔ "St.", "CA" → "Cal", strip punctuation, etc.
+function normalizeName(name) {
+    return name.toLowerCase().trim()
+        .replace(/\bstate\b/g, 'st')
+        .replace(/\bst\.\b/g, 'st')
+        .replace(/\bca\b/g, 'cal')
+        .replace(/\bn dakota\b/g, 'north dakota')
+        .replace(/\bmia(?:mi)?\s*(?:oh|ohio)\b/g, 'miami ohio')
+        .replace(/[^a-z ]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 // Match ESPN team name to auction team name, using seed to disambiguate
 function matchTeamName(espnName, espnSeed, auctionTeams) {
     const lower = espnName.toLowerCase().trim();
     const stripped = lower.replace(/[^a-z ]/g, '');
+    const normalized = normalizeName(espnName);
 
     // 1. Exact match (case-insensitive)
     for (const t of auctionTeams) {
@@ -459,24 +473,38 @@ function matchTeamName(espnName, espnSeed, auctionTeams) {
         if (t.team.toLowerCase().replace(/[^a-z ]/g, '') === stripped) return t;
     }
 
-    // 3. Seed-matched partial: only allow substring matching when seeds agree
+    // 3. Normalized match (State↔St., CA→Cal, etc.)
+    for (const t of auctionTeams) {
+        if (normalizeName(t.team) === normalized) return t;
+    }
+
+    // 4. Seed-matched partial: only allow substring matching when seeds agree
     //    This prevents "Texas" from matching "Texas Tech"
     if (espnSeed) {
         const seedNum = parseInt(espnSeed);
         for (const t of auctionTeams) {
             if (t.seed !== seedNum) continue;
-            const tLower = t.team.toLowerCase().trim();
-            if (tLower.includes(lower) || lower.includes(tLower)) return t;
+            const tNorm = normalizeName(t.team);
+            if (tNorm.includes(normalized) || normalized.includes(tNorm)) return t;
         }
     }
 
-    // 4. Fallback partial match but require word-boundary alignment
-    //    "Texas" should NOT match "Texas Tech" — require the match covers the full shorter name
-    //    and the longer name has the shorter as a complete word prefix followed by end-of-string
+    // 5. Check if ESPN name matches part of a combined play-in team name (e.g. "SMU / Miami (Ohio)")
+    //    Match on the component parts split by "/"
+    for (const t of auctionTeams) {
+        if (!t.team.includes('/')) continue;
+        const parts = t.team.split('/').map(p => normalizeName(p));
+        if (parts.some(p => p === normalized || p.includes(normalized) || normalized.includes(p))) {
+            // If seeds are available, verify they match too
+            if (espnSeed && t.seed !== parseInt(espnSeed)) continue;
+            return t;
+        }
+    }
+
+    // 6. Fallback partial match but require word-boundary alignment
     for (const t of auctionTeams) {
         const tLower = t.team.toLowerCase().trim();
-        if (tLower === lower) return t; // already checked but just in case
-        // Only match if one name fully equals the start of the other AND next char is end or space
+        if (tLower === lower) return t;
         if (lower.length > tLower.length) {
             if (lower.startsWith(tLower) && (lower[tLower.length] === ' ' || lower[tLower.length] === undefined)) return t;
         } else if (tLower.length > lower.length) {

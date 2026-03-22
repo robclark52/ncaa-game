@@ -4,7 +4,7 @@
 const HISTORY_DATA = {
     summary: {
         Jud:    { wins: 5, second: 6, third: 5, points: 2580 },
-        Bob:    { wins: 5, second: 5, third: 5, points: 2890 },
+        Bob:    { wins: 5, second: 5, third: 5, points: 3090 },
         Fletch: { wins: 7, second: 4, third: 5, points: 3240 }
     },
     years: [
@@ -25,7 +25,7 @@ const HISTORY_DATA = {
         { year: 2016, jud: 180, bob: 95,  fletch: 315, winner: 'Fletch' },
         { year: 2017, jud: 125, bob: 195, fletch: 280, winner: 'Fletch' },
         { year: 2018, jud: 175, bob: 50,  fletch: 370, winner: 'Fletch' },
-        { year: 2019, jud: 115, bob: 165, fletch: 120, winner: 'Bob' },
+        { year: 2019, jud: 115, bob: 365, fletch: 120, winner: 'Bob' },
         { year: 2020, jud: null, bob: null, fletch: null, winner: null, note: 'No data \u2014 COVID cancelled tournament' },
         { year: 2021, jud: 170, bob: 270, fletch: 145, winner: 'Bob' },
         { year: 2022, jud: 200, bob: 255, fletch: 115, winner: 'Bob' },
