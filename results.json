@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-22T18:45:35.832Z",
+  "lastUpdated": "2026-03-22T20:57:48.094Z",
   "teams": {
     "Arizona": {
       "roundResults": [
@@ -64,14 +64,14 @@
     "Iowa St.": {
       "roundResults": [
         5,
-        null,
+        10,
         null,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 5
+      "knownPoints": 15
     },
     "UConn": {
       "roundResults": [
@@ -304,13 +304,13 @@
     "Kentucky": {
       "roundResults": [
         5,
-        null,
+        0,
         null,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 5
     },
     "UCLA": {
