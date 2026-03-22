@@ -1,5 +1,136 @@
 // NCAA Auction Game - Main Application
 const SHEET_ID = '123GLGuyiDz4kNDVJKnLrV-9HnWEe0etqOCqQqw876u0';
+const GITHUB_REPO = 'robclark52/ncaa-game';
+const RESULTS_FILE = 'results.json';
+
+// ─── GitHub Contents API helpers ─────────────────────────────────────
+
+function getGitHubPAT() {
+    let pat = localStorage.getItem('ncaa_github_pat');
+    if (!pat) {
+        pat = prompt(
+            'Enter your GitHub Personal Access Token (PAT) to enable saving results.\n\n' +
+            'The token needs "public_repo" scope. It will be stored in your browser\'s localStorage and never shared.\n\n' +
+            'Create one at: https://github.com/settings/tokens'
+        );
+        if (pat) localStorage.setItem('ncaa_github_pat', pat.trim());
+    }
+    return pat ? pat.trim() : null;
+}
+
+async function fetchResultsFromGitHub() {
+    try {
+        // Fetch raw file from repo (no auth needed for public repo)
+        const url = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${RESULTS_FILE}?t=${Date.now()}`;
+        const resp = await fetch(url);
+        if (!resp.ok) return null;
+        return await resp.json();
+    } catch (e) {
+        console.log('No existing results.json found or parse error:', e.message);
+        return null;
+    }
+}
+
+async function commitResultsToGitHub(resultsObj) {
+    const pat = getGitHubPAT();
+    if (!pat) {
+        alert('GitHub PAT is required to save results. Please try again.');
+        return false;
+    }
+
+    const apiUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${RESULTS_FILE}`;
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(resultsObj, null, 2))));
+
+    // Get current file SHA (needed for update; null if file doesn't exist yet)
+    let sha = null;
+    try {
+        const existing = await fetch(apiUrl, {
+            headers: { 'Authorization': `token ${pat}` }
+        });
+        if (existing.ok) {
+            const data = await existing.json();
+            sha = data.sha;
+        }
+    } catch (e) { /* file may not exist yet */ }
+
+    const body = {
+        message: `Update tournament results - ${new Date().toLocaleString()}`,
+        content: content
+    };
+    if (sha) body.sha = sha;
+
+    const resp = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `token ${pat}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        if (resp.status === 401) {
+            localStorage.removeItem('ncaa_github_pat');
+            alert('Invalid GitHub PAT. It has been cleared. Please try again.');
+        } else {
+            alert(`Failed to save results: ${err.message || resp.statusText}`);
+        }
+        return false;
+    }
+    return true;
+}
+
+// Build a results.json object from current auctionData
+function buildResultsJSON(teams) {
+    const results = {
+        lastUpdated: new Date().toISOString(),
+        teams: {}
+    };
+    for (const t of teams) {
+        results.teams[t.team] = {
+            roundResults: [...t.roundResults],
+            eliminated: t.eliminated,
+            knownPoints: t.knownPoints
+        };
+    }
+    return results;
+}
+
+// Apply saved results.json data onto auction teams
+function applyStoredResults(teams, stored) {
+    if (!stored || !stored.teams) return;
+    for (const t of teams) {
+        const saved = stored.teams[t.team];
+        if (!saved) continue;
+        // Overlay stored round results onto team (only non-null values)
+        for (let r = 0; r < saved.roundResults.length && r < t.roundResults.length; r++) {
+            if (saved.roundResults[r] !== null && saved.roundResults[r] !== undefined) {
+                t.roundResults[r] = saved.roundResults[r];
+            }
+        }
+    }
+    // Recalculate derived fields
+    recalcTeamStats(teams);
+}
+
+// Recalculate knownPoints, eliminated, roundWins from roundResults
+function recalcTeamStats(teams) {
+    for (const t of teams) {
+        t.knownPoints = 0;
+        t.eliminated = false;
+        t.roundWins = 0;
+        for (let r = 0; r < t.roundResults.length; r++) {
+            if (t.roundResults[r] !== null && t.roundResults[r] > 0) {
+                t.knownPoints += t.roundResults[r];
+                t.roundWins++;
+            } else if (t.roundResults[r] !== null && t.roundResults[r] === 0) {
+                t.eliminated = true;
+                break;
+            }
+        }
+    }
+}
 
 function sheetCSVUrl(sheetName) {
     const encoded = encodeURIComponent(sheetName);
@@ -501,25 +632,51 @@ function parseRoundFromNote(note) {
     return -1;
 }
 
-// Fuzzy match ESPN team name to auction team name
-function matchTeamName(espnName, auctionTeams) {
-    const lower = espnName.toLowerCase().replace(/[^a-z]/g, '');
-    // Try exact match first
+// Match ESPN team name to auction team name, using seed to disambiguate
+function matchTeamName(espnName, espnSeed, auctionTeams) {
+    const lower = espnName.toLowerCase().trim();
+    const stripped = lower.replace(/[^a-z ]/g, '');
+
+    // 1. Exact match (case-insensitive)
     for (const t of auctionTeams) {
-        if (t.team.toLowerCase() === espnName.toLowerCase()) return t;
-        if (t.team.toLowerCase().replace(/[^a-z]/g, '') === lower) return t;
+        if (t.team.toLowerCase().trim() === lower) return t;
     }
-    // Try partial/starts-with match
+
+    // 2. Exact match after stripping punctuation
     for (const t of auctionTeams) {
-        const tLower = t.team.toLowerCase().replace(/[^a-z]/g, '');
-        if (tLower.startsWith(lower) || lower.startsWith(tLower)) return t;
-        // Try common abbreviations
-        if (lower.includes(tLower) || tLower.includes(lower)) return t;
+        if (t.team.toLowerCase().replace(/[^a-z ]/g, '') === stripped) return t;
     }
+
+    // 3. Seed-matched partial: only allow substring matching when seeds agree
+    //    This prevents "Texas" from matching "Texas Tech"
+    if (espnSeed) {
+        const seedNum = parseInt(espnSeed);
+        for (const t of auctionTeams) {
+            if (t.seed !== seedNum) continue;
+            const tLower = t.team.toLowerCase().trim();
+            if (tLower.includes(lower) || lower.includes(tLower)) return t;
+        }
+    }
+
+    // 4. Fallback partial match but require word-boundary alignment
+    //    "Texas" should NOT match "Texas Tech" — require the match covers the full shorter name
+    //    and the longer name has the shorter as a complete word prefix followed by end-of-string
+    for (const t of auctionTeams) {
+        const tLower = t.team.toLowerCase().trim();
+        if (tLower === lower) return t; // already checked but just in case
+        // Only match if one name fully equals the start of the other AND next char is end or space
+        if (lower.length > tLower.length) {
+            if (lower.startsWith(tLower) && (lower[tLower.length] === ' ' || lower[tLower.length] === undefined)) return t;
+        } else if (tLower.length > lower.length) {
+            if (tLower.startsWith(lower) && (tLower[lower.length] === ' ' || tLower[lower.length] === undefined)) return t;
+        }
+    }
+
+    console.log(`No match found for ESPN team: "${espnName}" (seed ${espnSeed})`);
     return null;
 }
 
-// Update Results button - fetch live scores from ESPN
+// Update Results button - fetch live scores from ESPN and persist to GitHub
 document.getElementById('update-results').addEventListener('click', async () => {
     const btn = document.getElementById('update-results');
     btn.disabled = true;
@@ -531,7 +688,7 @@ document.getElementById('update-results').addEventListener('click', async () => 
         for (const event of games) {
             const comp = event.competitions[0];
             const status = comp.status.type.name;
-            if (status !== 'STATUS_FINAL') continue; // Only use final results
+            if (status !== 'STATUS_FINAL') continue;
 
             const notes = (comp.notes || []).map(n => n.headline).join(' ');
             const roundIdx = parseRoundFromNote(notes);
@@ -539,7 +696,8 @@ document.getElementById('update-results').addEventListener('click', async () => 
 
             for (const competitor of comp.competitors) {
                 const espnName = competitor.team.shortDisplayName || competitor.team.displayName;
-                const matched = matchTeamName(espnName, auctionData);
+                const espnSeed = competitor.curatedRank?.current || competitor.seed || null;
+                const matched = matchTeamName(espnName, espnSeed, auctionData);
                 if (!matched) continue;
 
                 const won = competitor.winner === true;
@@ -553,27 +711,24 @@ document.getElementById('update-results').addEventListener('click', async () => 
             }
         }
 
-        // Recalculate knownPoints and eliminated for all teams
-        for (const t of auctionData) {
-            t.knownPoints = 0;
-            t.eliminated = false;
-            t.roundWins = 0;
-            for (let r = 0; r < t.roundResults.length; r++) {
-                if (t.roundResults[r] !== null && t.roundResults[r] > 0) {
-                    t.knownPoints += t.roundResults[r];
-                    t.roundWins++;
-                } else if (t.roundResults[r] !== null && t.roundResults[r] === 0) {
-                    t.eliminated = true;
-                    break;
-                }
-            }
-        }
+        // Recalculate derived stats
+        recalcTeamStats(auctionData);
 
         renderScoreboard(auctionData);
         renderAuctionTable(auctionData);
         populateForceWinner(auctionData);
 
-        btn.textContent = updated > 0 ? `Updated ${updated} results!` : 'All up to date!';
+        if (updated > 0) {
+            // Persist updated results to GitHub
+            btn.textContent = 'Saving to GitHub...';
+            const resultsObj = buildResultsJSON(auctionData);
+            const saved = await commitResultsToGitHub(resultsObj);
+            btn.textContent = saved
+                ? `Updated ${updated} results & saved!`
+                : `Updated ${updated} results (save failed)`;
+        } else {
+            btn.textContent = 'All up to date!';
+        }
         setTimeout(() => { btn.textContent = 'Update Results'; btn.disabled = false; }, 3000);
     } catch (err) {
         btn.textContent = 'Error - try again';
@@ -585,8 +740,21 @@ document.getElementById('update-results').addEventListener('click', async () => 
 // Load data on page load
 async function loadData() {
     try {
+        // 1. Load auction data from Google Sheets
         const auctionRows = await fetchCSV(sheetCSVUrl('2026 Auction'));
         auctionData = parseAuctionData(auctionRows);
+
+        // 2. Overlay persisted results from GitHub (takes priority over sheet data)
+        try {
+            const stored = await fetchResultsFromGitHub();
+            if (stored) {
+                applyStoredResults(auctionData, stored);
+                console.log('Loaded persisted results from GitHub (last updated:', stored.lastUpdated, ')');
+            }
+        } catch (e) {
+            console.log('Could not load persisted results:', e.message);
+        }
+
         renderScoreboard(auctionData);
         renderAuctionTable(auctionData);
         populateForceWinner(auctionData);
