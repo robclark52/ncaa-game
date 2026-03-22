@@ -275,6 +275,38 @@ tr:hover { background: rgba(255,255,255,0.03); }
 }
 .winner-cell { font-weight: 700; }
 
+/* Secondary button */
+.btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-secondary:hover { background: var(--border); }
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Sim suite table */
+#sim-suite-table {
+    font-size: 0.85rem;
+}
+#sim-suite-table th {
+    white-space: nowrap;
+    font-size: 0.75rem;
+}
+#sim-suite-results {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
 footer {
     text-align: center;
     padding: 2rem;

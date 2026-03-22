@@ -48,7 +48,10 @@
                 </div>
             </div>
 
-            <h2>Auction Results</h2>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+                <h2 style="margin:0;">Auction Results</h2>
+                <button id="update-results" class="btn-secondary">Update Results</button>
+            </div>
             <div class="table-wrap">
                 <table id="auction-table">
                     <thead>
@@ -80,6 +83,17 @@
                 <h2>Monte Carlo Simulation</h2>
                 <p class="sim-desc">Simulate the remaining tournament games using RPI-based win probabilities.</p>
                 <div class="sim-options">
+                    <label>
+                        Starting point:
+                        <select id="sim-start">
+                            <option value="pre">Pre-Tournament</option>
+                            <option value="current" selected>Current Results</option>
+                            <option value="1">After Round 1</option>
+                            <option value="2">After Round 2</option>
+                            <option value="3">After Sweet 16</option>
+                            <option value="4">After Elite 8</option>
+                        </select>
+                    </label>
                     <label>
                         Number of simulations:
                         <select id="sim-count">
@@ -128,6 +142,17 @@
                         <div class="sim-win-pct" id="sim-fletch-pct">--</div>
                         <div class="player-detail">Win probability</div>
                         <div class="sim-ev" id="sim-fletch-ev">E[pts]: --</div>
+                    </div>
+                </div>
+
+                <div id="sim-suite-results" class="hidden">
+                    <h3>Scenario Comparison</h3>
+                    <p class="sim-desc">Normal vs. forcing each 1-seed and 2-seed to win the tournament.</p>
+                    <div class="table-wrap">
+                        <table id="sim-suite-table">
+                            <thead id="sim-suite-head"></thead>
+                            <tbody id="sim-suite-body"></tbody>
+                        </table>
                     </div>
                 </div>
 
