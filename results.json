@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-22T20:57:48.094Z",
+  "lastUpdated": "2026-03-22T23:53:22.572Z",
   "teams": {
     "Arizona": {
       "roundResults": [
@@ -172,13 +172,13 @@
     "Kansas": {
       "roundResults": [
         5,
-        null,
+        0,
         null,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 5
     },
     "Nebraska": {
@@ -220,14 +220,14 @@
     "St. John's": {
       "roundResults": [
         5,
-        null,
+        10,
         null,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 5
+      "knownPoints": 15
     },
     "Vanderbilt": {
       "roundResults": [
