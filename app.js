@@ -344,7 +344,7 @@ function renderSimSuite(suiteResults) {
     // Header row: blank | scenario names
     let headerRow = '<tr><th></th>';
     for (const sc of scenarios) {
-        const label = sc === 'Normal' ? 'Normal' : sc;
+        const label = sc === 'Normal' ? 'Current' : sc;
         // Find owner for forced winner teams
         let ownerLabel = '';
         if (sc !== 'Normal') {
@@ -458,7 +458,8 @@ document.getElementById('run-sim').addEventListener('click', async () => {
     progressText.textContent = 'Running scenario suite (Normal + top seeds)...';
     const suiteSimCount = Math.min(numSims, 5000); // cap suite at 5000 per scenario for speed
 
-    const suiteResults = await runSimSuite(simData, suiteSimCount, k, mode, topSeeds, (pct) => {
+    // Suite always runs with 'current' mode regardless of main sim starting point
+    const suiteResults = await runSimSuite(simData, suiteSimCount, k, 'current', topSeeds, (pct) => {
         progressFill.style.width = (pct * 100) + '%';
         progressText.textContent = `Running scenario suite... ${Math.round(pct * 100)}%`;
     });
@@ -469,19 +470,111 @@ document.getElementById('run-sim').addEventListener('click', async () => {
     btn.disabled = false;
 });
 
-// Update Results button - re-fetch from Google Sheets
+// Fetch live NCAA tournament results from ESPN API
+async function fetchESPNResults() {
+    // Tournament dates: R1 Mar 19-20, R2 Mar 21-22, S16 Mar 26-27, E8 Mar 28-29, F4 Apr 4, NCG Apr 6
+    const tourneyDates = [
+        '20260319', '20260320', '20260321', '20260322',
+        '20260326', '20260327', '20260328', '20260329',
+        '20260404', '20260406'
+    ];
+    const allGames = [];
+    for (const d of tourneyDates) {
+        try {
+            const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=${d}&groups=100&limit=50`;
+            const resp = await fetch(url);
+            const data = await resp.json();
+            allGames.push(...(data.events || []));
+        } catch (e) { /* skip date if fetch fails */ }
+    }
+    return allGames;
+}
+
+// Map ESPN round note to round index (0=R64, 1=R32, 2=S16, 3=E8, 4=F4, 5=NCG)
+function parseRoundFromNote(note) {
+    if (note.includes('1st Round')) return 0;
+    if (note.includes('2nd Round')) return 1;
+    if (note.includes('Sweet') || note.includes('Regional Semifinal')) return 2;
+    if (note.includes('Elite') || note.includes('Regional Final')) return 3;
+    if (note.includes('Final Four') || note.includes('National Semifinal')) return 4;
+    if (note.includes('National Championship')) return 5;
+    return -1;
+}
+
+// Fuzzy match ESPN team name to auction team name
+function matchTeamName(espnName, auctionTeams) {
+    const lower = espnName.toLowerCase().replace(/[^a-z]/g, '');
+    // Try exact match first
+    for (const t of auctionTeams) {
+        if (t.team.toLowerCase() === espnName.toLowerCase()) return t;
+        if (t.team.toLowerCase().replace(/[^a-z]/g, '') === lower) return t;
+    }
+    // Try partial/starts-with match
+    for (const t of auctionTeams) {
+        const tLower = t.team.toLowerCase().replace(/[^a-z]/g, '');
+        if (tLower.startsWith(lower) || lower.startsWith(tLower)) return t;
+        // Try common abbreviations
+        if (lower.includes(tLower) || tLower.includes(lower)) return t;
+    }
+    return null;
+}
+
+// Update Results button - fetch live scores from ESPN
 document.getElementById('update-results').addEventListener('click', async () => {
     const btn = document.getElementById('update-results');
     btn.disabled = true;
-    btn.textContent = 'Updating...';
+    btn.textContent = 'Fetching scores...';
     try {
-        const auctionRows = await fetchCSV(sheetCSVUrl('2026 Auction'));
-        auctionData = parseAuctionData(auctionRows);
+        const games = await fetchESPNResults();
+        let updated = 0;
+
+        for (const event of games) {
+            const comp = event.competitions[0];
+            const status = comp.status.type.name;
+            if (status !== 'STATUS_FINAL') continue; // Only use final results
+
+            const notes = (comp.notes || []).map(n => n.headline).join(' ');
+            const roundIdx = parseRoundFromNote(notes);
+            if (roundIdx < 0) continue;
+
+            for (const competitor of comp.competitors) {
+                const espnName = competitor.team.shortDisplayName || competitor.team.displayName;
+                const matched = matchTeamName(espnName, auctionData);
+                if (!matched) continue;
+
+                const won = competitor.winner === true;
+                const currentVal = matched.roundResults[roundIdx];
+                const newVal = won ? ROUND_POINTS[roundIdx] : 0;
+
+                if (currentVal === null || currentVal === undefined) {
+                    matched.roundResults[roundIdx] = newVal;
+                    updated++;
+                }
+            }
+        }
+
+        // Recalculate knownPoints and eliminated for all teams
+        for (const t of auctionData) {
+            t.knownPoints = 0;
+            t.eliminated = false;
+            t.roundWins = 0;
+            for (let r = 0; r < t.roundResults.length; r++) {
+                if (t.roundResults[r] !== null && t.roundResults[r] > 0) {
+                    t.knownPoints += t.roundResults[r];
+                    t.roundWins++;
+                } else if (t.roundResults[r] !== null && t.roundResults[r] === 0) {
+                    t.eliminated = true;
+                    break;
+                }
+            }
+        }
+
         renderScoreboard(auctionData);
         renderAuctionTable(auctionData);
         populateForceWinner(auctionData);
-        btn.textContent = 'Updated!';
-        setTimeout(() => { btn.textContent = 'Update Results'; btn.disabled = false; }, 2000);
+
+        btn.textContent = updated > 0 ? `Updated ${updated} results!` : 'All up to date!';
+        setTimeout(() => { btn.textContent = 'Update Results'; btn.disabled = false; }, 3000);
     } catch (err) {
         btn.textContent = 'Error - try again';
         btn.disabled = false;
