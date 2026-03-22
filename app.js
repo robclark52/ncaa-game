@@ -1,5 +1,4 @@
 // NCAA Auction Game - Main Application
-const SHEET_ID = '123GLGuyiDz4kNDVJKnLrV-9HnWEe0etqOCqQqw876u0';
 const GITHUB_REPO = 'robclark52/ncaa-game';
 const RESULTS_FILE = 'results.json';
 
@@ -132,204 +131,16 @@ function recalcTeamStats(teams) {
     }
 }
 
-function sheetCSVUrl(sheetName) {
-    const encoded = encodeURIComponent(sheetName);
-    return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encoded}`;
-}
-
-async function fetchCSV(url) {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`Failed to fetch ${url}: ${resp.status}`);
-    const text = await resp.text();
-    return parseCSV(text);
-}
-
-function parseCSV(text) {
-    const rows = [];
-    let current = '';
-    let inQuotes = false;
-    let row = [];
-
-    for (let i = 0; i < text.length; i++) {
-        const ch = text[i];
-        if (inQuotes) {
-            if (ch === '"' && text[i + 1] === '"') {
-                current += '"';
-                i++;
-            } else if (ch === '"') {
-                inQuotes = false;
-            } else {
-                current += ch;
-            }
-        } else {
-            if (ch === '"') {
-                inQuotes = true;
-            } else if (ch === ',') {
-                row.push(current.trim());
-                current = '';
-            } else if (ch === '\n' || ch === '\r') {
-                if (ch === '\r' && text[i + 1] === '\n') i++;
-                row.push(current.trim());
-                if (row.some(c => c !== '')) rows.push(row);
-                row = [];
-                current = '';
-            } else {
-                current += ch;
-            }
-        }
-    }
-    if (current || row.length) {
-        row.push(current.trim());
-        if (row.some(c => c !== '')) rows.push(row);
-    }
-    return rows;
-}
-
-// Parse auction data from CSV
-// CSV columns: 0:Opener, 1:Region, 2:Seed, 3:Team,
-// 4:Jud bid, 5:Bob bid, 6:Fletch bid, 7:Owner, 8:Round label,
-// 9:Rd1(5), 10:Rd2(10), 11:S16(15), 12:E8(20), 13:F4(25), 14:NCG(30)
-function parseAuctionData(rows) {
-    const teams = [];
-    for (let i = 2; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row || row.length < 4) continue;
-        const team = (row[3] || '').trim();
-        if (!team) continue;
-
-        const opener = (row[0] || '').trim();
-        const region = (row[1] || '').trim();
-        const seed = parseInt(row[2]) || 0;
-        const judBid = parseFloat(row[4]) || 0;
-        const bobBid = parseFloat(row[5]) || 0;
-        const fletchBid = parseFloat(row[6]) || 0;
-        let owner = (row[7] || '').trim();
-
-        // Fix #N/A or invalid owners: determine from highest bid
-        if (!['Jud', 'Bob', 'Fletch'].includes(owner)) {
-            const maxBid = Math.max(judBid, bobBid, fletchBid);
-            if (maxBid > 0) {
-                if (judBid === maxBid) owner = 'Jud';
-                else if (bobBid === maxBid) owner = 'Bob';
-                else owner = 'Fletch';
-            }
-        }
-
-        // Round results: columns 9-14
-        const roundResults = [];
-        for (let r = 9; r <= 14; r++) {
-            const val = (row[r] || '').trim();
-            if (val === '') {
-                roundResults.push(null);
-            } else {
-                roundResults.push(parseFloat(val));
-            }
-        }
-
-        // Determine price from winning bidder
-        let price = 0;
-        if (owner === 'Jud') price = judBid;
-        else if (owner === 'Bob') price = bobBid;
-        else if (owner === 'Fletch') price = fletchBid;
-
-        // Calculate known points from round results
-        let knownPoints = 0;
-        let eliminated = false;
-        let roundWins = 0;
-        for (let r = 0; r < roundResults.length; r++) {
-            if (roundResults[r] !== null && roundResults[r] > 0) {
-                knownPoints += roundResults[r];
-                roundWins++;
-            } else if (roundResults[r] !== null && roundResults[r] === 0) {
-                eliminated = true;
-                break;
-            }
-        }
-
-        const rpi = lookupRPI(team);
-
-        teams.push({
-            opener, region, seed, team, owner, price,
-            roundResults, knownPoints, eliminated, roundWins,
-            rpi, judBid, bobBid, fletchBid
-        });
-    }
-    return teams;
-}
-
-// Parse history data from CSV
-function parseHistoryData(rows) {
-    const history = {
-        summary: { Jud: {}, Bob: {}, Fletch: {} },
-        years: []
-    };
-
-    // Hardcoded overrides for years with missing data
-    const knownWinners = { 2002: 'Jud', 2009: 'Fletch' };
-    const yearNotes = { 2020: 'No data \u2014 COVID cancelled tournament' };
-
-    let summaryIdx = 0;
-    const summaryLabels = ['wins', 'second', 'third', 'points'];
-    for (let i = 0; i < rows.length; i++) {
-        const col1 = (rows[i][1] || '').trim();
-        const col2 = (rows[i][2] || '').trim();
-
-        const year = parseInt(col1);
-        if (year >= 2000 && year <= 2030) {
-            const jud = (rows[i][2] || '').trim();
-            const bob = (rows[i][3] || '').trim();
-            const fletch = (rows[i][4] || '').trim();
-
-            if (jud === '' && bob === '' && fletch === '') {
-                const note = yearNotes[year] || (knownWinners[year] ? knownWinners[year] + ' won' : 'No data');
-                const winner = knownWinners[year] || null;
-                history.years.push({ year, jud: null, bob: null, fletch: null, note, winner });
-            } else {
-                const judPts = parseInt(jud) || 0;
-                const bobPts = parseInt(bob) || 0;
-                const fletchPts = parseInt(fletch) || 0;
-                const maxPts = Math.max(judPts, bobPts, fletchPts);
-                let winner = null;
-                if (maxPts > 0) {
-                    const winners = [];
-                    if (judPts === maxPts) winners.push('Jud');
-                    if (bobPts === maxPts) winners.push('Bob');
-                    if (fletchPts === maxPts) winners.push('Fletch');
-                    winner = winners.join(' / ');
-                }
-                history.years.push({ year, jud: judPts, bob: bobPts, fletch: fletchPts, winner });
-            }
-            continue;
-        }
-
-        // Summary rows
-        if (summaryIdx < 4 && (col1.includes('Summary') || col1 === 'Jud' || col1 === '')) {
-            if (col2 !== '' && col2 !== 'Jud' && !isNaN(parseInt(col2))) {
-                const label = summaryLabels[summaryIdx];
-                history.summary.Jud[label] = parseInt(rows[i][2]) || 0;
-                history.summary.Bob[label] = parseInt(rows[i][3]) || 0;
-                history.summary.Fletch[label] = parseInt(rows[i][4]) || 0;
-                summaryIdx++;
-            }
-        }
-    }
-
-    // Override summary wins to count hardcoded winners
-    // Count actual wins from year data (including hardcoded winners)
-    const winCounts = { Jud: 0, Bob: 0, Fletch: 0 };
-    for (const y of history.years) {
-        if (y.winner) {
-            for (const name of y.winner.split(' / ')) {
-                const trimmed = name.trim();
-                if (winCounts[trimmed] !== undefined) winCounts[trimmed]++;
-            }
-        }
-    }
-    history.summary.Jud.wins = winCounts.Jud;
-    history.summary.Bob.wins = winCounts.Bob;
-    history.summary.Fletch.wins = winCounts.Fletch;
-
-    return history;
+// Build auctionData from static AUCTION_DATA + RPI lookup
+function buildAuctionData() {
+    return AUCTION_DATA.map(t => ({
+        ...t,
+        rpi: lookupRPI(t.team),
+        roundResults: [null, null, null, null, null, null],
+        knownPoints: 0,
+        eliminated: false,
+        roundWins: 0
+    }));
 }
 
 // Render functions
@@ -339,7 +150,7 @@ function renderScoreboard(teams) {
     const teamCount = { Jud: 0, Bob: 0, Fletch: 0 };
 
     for (const t of teams) {
-        if (scores[t.owner] !== undefined) {
+        if (t.owner && scores[t.owner] !== undefined) {
             scores[t.owner] += t.knownPoints;
             spent[t.owner] += t.price;
             teamCount[t.owner]++;
@@ -362,7 +173,7 @@ function renderAuctionTable(teams) {
     for (const t of sorted) {
         const tr = document.createElement('tr');
         if (t.eliminated) tr.classList.add('eliminated-row');
-        const ownerClass = `owner-${t.owner.toLowerCase()}`;
+        const ownerClass = t.owner ? `owner-${t.owner.toLowerCase()}` : '';
         const roundCells = t.roundResults.map((r, i) => {
             if (r === null) return '<td>-</td>';
             if (r > 0) return `<td class="round-won">${ROUND_POINTS[i]}</td>`;
@@ -374,8 +185,8 @@ function renderAuctionTable(teams) {
             <td>${t.region}</td>
             <td>${t.seed}</td>
             <td>${t.eliminated ? '<span class="eliminated">' + t.team + '</span>' : t.team}</td>
-            <td class="${ownerClass}">${t.owner}</td>
-            <td>$${t.price}</td>
+            <td class="${ownerClass}">${t.owner || '—'}</td>
+            <td>${t.price > 0 ? '$' + t.price : '—'}</td>
             <td>${t.rpi ? t.rpi.toFixed(3) : '?'}</td>
             ${roundCells}
             <td class="points-cell">${t.knownPoints}</td>
@@ -446,11 +257,11 @@ function renderSimResults(results) {
         .sort((a, b) => b[1].champPct - a[1].champPct);
 
     for (const [team, stats] of teamArr) {
-        const ownerClass = `owner-${(stats.owner || '').toLowerCase()}`;
+        const ownerClass = stats.owner ? `owner-${stats.owner.toLowerCase()}` : '';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${team}</td>
-            <td class="${ownerClass}">${stats.owner}</td>
+            <td class="${ownerClass}">${stats.owner || '—'}</td>
             <td>${stats.seed}</td>
             <td>${stats.rpi ? stats.rpi.toFixed(3) : '?'}</td>
             <td class="points-cell">${(stats.champPct * 100).toFixed(1)}%</td>
@@ -530,7 +341,7 @@ function populateForceWinner(teams) {
     for (const t of sorted) {
         const opt = document.createElement('option');
         opt.value = t.team;
-        opt.textContent = `${t.seed} ${t.team} (${t.owner})`;
+        opt.textContent = `${t.seed} ${t.team}${t.owner ? ' (' + t.owner + ')' : ' (unowned)'}`;
         select.appendChild(opt);
     }
 }
@@ -820,16 +631,15 @@ function renderExplainer() {
 // Load data on page load
 async function loadData() {
     try {
-        // 1. Load auction data from Google Sheets
-        const auctionRows = await fetchCSV(sheetCSVUrl('2026 Auction'));
-        auctionData = parseAuctionData(auctionRows);
+        // 1. Build auction data from static file (auction-data.js)
+        auctionData = buildAuctionData();
 
-        // 2. Overlay persisted results from GitHub (takes priority over sheet data)
+        // 2. Apply persisted results from GitHub (sole source of truth for game results)
         try {
             const stored = await fetchResultsFromGitHub();
             if (stored) {
                 applyStoredResults(auctionData, stored);
-                console.log('Loaded persisted results from GitHub (last updated:', stored.lastUpdated, ')');
+                console.log('Loaded results from GitHub (last updated:', stored.lastUpdated, ')');
             }
         } catch (e) {
             console.log('Could not load persisted results:', e.message);
@@ -839,9 +649,8 @@ async function loadData() {
         renderAuctionTable(auctionData);
         populateForceWinner(auctionData);
 
-        const historyRows = await fetchCSV(sheetCSVUrl('History'));
-        const history = parseHistoryData(historyRows);
-        renderHistory(history);
+        // 3. Render history from static file (history-data.js)
+        renderHistory(HISTORY_DATA);
 
     } catch (err) {
         console.error('Error loading data:', err);
@@ -849,8 +658,6 @@ async function loadData() {
             <div style="text-align:center; padding:3rem;">
                 <h2>Unable to load data</h2>
                 <p style="color:var(--text-muted); margin-top:1rem;">
-                    Could not fetch data from Google Sheets.<br>
-                    Make sure the spreadsheet is publicly shared.<br>
                     Error: ${err.message}
                 </p>
             </div>
