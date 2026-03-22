@@ -273,9 +273,20 @@ function renderSimResults(results) {
 }
 
 // Render the scenario comparison suite (Normal + forced winners grid)
-function renderSimSuite(suiteResults) {
+function renderSimSuite(suiteResults, mode) {
     const container = document.getElementById('sim-suite-results');
     container.classList.remove('hidden');
+
+    // Build a human-readable label for the "Normal" (baseline) scenario
+    const modeLabels = {
+        'pre': 'Pre-Tournament',
+        'current': 'Current Results',
+        1: 'After Rd 1',
+        2: 'After Rd 2',
+        3: 'After Sweet 16',
+        4: 'After Elite 8'
+    };
+    const baselineLabel = modeLabels[mode] || 'Current Results';
 
     const scenarios = Object.keys(suiteResults);
     const thead = document.getElementById('sim-suite-head');
@@ -286,7 +297,7 @@ function renderSimSuite(suiteResults) {
     // Header row: blank | scenario names
     let headerRow = '<tr><th></th>';
     for (const sc of scenarios) {
-        const label = sc === 'Normal' ? 'Current' : sc;
+        const label = sc === 'Normal' ? baselineLabel : sc;
         // Find owner for forced winner teams
         let ownerLabel = '';
         if (sc !== 'Normal') {
@@ -401,13 +412,13 @@ document.getElementById('run-sim').addEventListener('click', async () => {
     progressText.textContent = 'Running scenario suite (Normal + top seeds)...';
     const suiteSimCount = Math.min(numSims, 5000); // cap suite at 5000 per scenario for speed
 
-    // Suite always runs with 'current' mode regardless of main sim starting point
-    const suiteResults = await runSimSuite(simData, suiteSimCount, k, 'current', topSeeds, (pct) => {
+    // Suite uses the same starting point as the main simulation
+    const suiteResults = await runSimSuite(simData, suiteSimCount, k, mode, topSeeds, (pct) => {
         progressFill.style.width = (pct * 100) + '%';
         progressText.textContent = `Running scenario suite... ${Math.round(pct * 100)}%`;
     }, model);
 
-    renderSimSuite(suiteResults);
+    renderSimSuite(suiteResults, mode);
 
     progressText.textContent = `Complete! (${numSims.toLocaleString()} sims + ${topSeeds.length + 1} scenarios @ ${suiteSimCount.toLocaleString()} each)`;
     btn.disabled = false;
