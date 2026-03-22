@@ -565,6 +565,7 @@ document.getElementById('run-sim').addEventListener('click', async () => {
     const k = parseFloat(document.getElementById('sim-k').value);
     const forcedWinner = document.getElementById('sim-force-winner').value || null;
     const mode = getSimMode();
+    const model = document.getElementById('sim-model').value;
     const btn = document.getElementById('run-sim');
     const progressDiv = document.getElementById('sim-progress');
     const progressFill = document.getElementById('progress-fill');
@@ -580,7 +581,7 @@ document.getElementById('run-sim').addEventListener('click', async () => {
     const results = await runMonteCarlo(simData, numSims, k, (pct) => {
         progressFill.style.width = (pct * 100) + '%';
         progressText.textContent = `Running main sim... ${Math.round(pct * 100)}%`;
-    }, forcedWinner, mode);
+    }, forcedWinner, mode, model);
 
     renderSimResults(results);
 
@@ -593,7 +594,7 @@ document.getElementById('run-sim').addEventListener('click', async () => {
     const suiteResults = await runSimSuite(simData, suiteSimCount, k, 'current', topSeeds, (pct) => {
         progressFill.style.width = (pct * 100) + '%';
         progressText.textContent = `Running scenario suite... ${Math.round(pct * 100)}%`;
-    });
+    }, model);
 
     renderSimSuite(suiteResults);
 
@@ -737,6 +738,85 @@ document.getElementById('update-results').addEventListener('click', async () => 
     }
 });
 
+// ─── Model selection: show/hide k, update description ────
+document.getElementById('sim-model').addEventListener('change', updateModelDesc);
+function updateModelDesc() {
+    const model = document.getElementById('sim-model').value;
+    const kGroup = document.getElementById('k-group');
+    const desc = document.getElementById('model-desc');
+    if (model === 'rpi') {
+        kGroup.style.display = '';
+        desc.textContent = 'RPI Model: Win probability from logistic function of RPI difference. Higher k = more separation between favorites and underdogs.';
+    } else {
+        kGroup.style.display = 'none';
+        desc.textContent = 'Seed Model: Win probability from historical seed-vs-seed matchup data (1985-2024, ~40 years).';
+    }
+}
+
+// ─── Model Explainer ────────────────────────────────────
+function renderExplainer() {
+    document.getElementById('explainer-content').innerHTML = `
+        <h2>Simulation Methodology</h2>
+
+        <h3>Overview</h3>
+        <p>This tool uses <strong>Monte Carlo simulation</strong> to estimate each player's probability of winning the NCAA Auction Game. It simulates the remaining tournament games thousands of times, scores each team based on how far it advances, tallies points by owner, and tracks win rates.</p>
+
+        <h3>Auction Game Scoring</h3>
+        <p>Points are awarded for each win, increasing by round:</p>
+        <table class="explainer-table">
+            <tr><th>Round</th><th>Points per Win</th><th>Games</th><th>Total Pts Available</th></tr>
+            <tr><td>Round of 64</td><td>5</td><td>32</td><td>160</td></tr>
+            <tr><td>Round of 32</td><td>10</td><td>16</td><td>160</td></tr>
+            <tr><td>Sweet 16</td><td>15</td><td>8</td><td>120</td></tr>
+            <tr><td>Elite 8</td><td>20</td><td>4</td><td>80</td></tr>
+            <tr><td>Final Four</td><td>25</td><td>2</td><td>50</td></tr>
+            <tr><td>Championship</td><td>30</td><td>1</td><td>30</td></tr>
+            <tr><td><strong>Total</strong></td><td></td><td><strong>63</strong></td><td><strong>600</strong></td></tr>
+        </table>
+        <p>The tournament champion earns 5 + 10 + 15 + 20 + 25 + 30 = <strong>105 points</strong> total. All 600 points are distributed across the three players each year.</p>
+
+        <h3>RPI Model</h3>
+        <p>The RPI (Ratings Percentage Index) Model uses each team's RPI rating to compute win probabilities via a <strong>logistic function</strong>:</p>
+        <div class="formula">P(A beats B) = 1 / (1 + 10<sup>(RPI<sub>B</sub> - RPI<sub>A</sub>) &times; k</sup>)</div>
+        <p>Where:</p>
+        <ul>
+            <li><strong>RPI<sub>A</sub></strong>, <strong>RPI<sub>B</sub></strong> = RPI ratings for teams A and B (higher is better, typical range 0.4-0.7)</li>
+            <li><strong>k</strong> = sensitivity parameter (default 7). Higher k means the model favors the higher-ranked team more strongly.</li>
+        </ul>
+        <p><strong>Example:</strong> Duke (RPI 0.690) vs a team with RPI 0.560, k=7:</p>
+        <div class="formula">P(Duke) = 1 / (1 + 10<sup>(0.560 - 0.690) &times; 7</sup>) = 1 / (1 + 10<sup>-0.91</sup>) = 1 / (1 + 0.123) &asymp; <strong>89.0%</strong></div>
+        <p>The logistic shape means small RPI differences yield near-50/50 odds, while larger gaps create more decisive probabilities.</p>
+
+        <h3>Seed Model</h3>
+        <p>The Seed Model uses <strong>historical win rates by seed matchup</strong> from all NCAA tournaments 1985-2024 (~40 years of data). For any matchup between seed X and seed Y, the model looks up the empirical win rate:</p>
+        <div class="formula">P(Seed X beats Seed Y) = Historical Win Rate[X vs Y]</div>
+        <p>Key historical rates:</p>
+        <table class="explainer-table">
+            <tr><th>Matchup</th><th>Higher Seed Win%</th><th>Notes</th></tr>
+            <tr><td>1 vs 16</td><td>99.3%</td><td>Only 2 upsets ever (UMBC 2018, FDU 2023)</td></tr>
+            <tr><td>2 vs 15</td><td>94.6%</td><td>Rare upsets (Oral Roberts 2021, St. Peter's 2022)</td></tr>
+            <tr><td>1 vs 8/9</td><td>~80%</td><td>1-seeds dominant in Round of 32</td></tr>
+            <tr><td>5 vs 12</td><td>64.9%</td><td>Famous "12-5 upset" spot</td></tr>
+            <tr><td>1 vs 2 (late rounds)</td><td>50.8%</td><td>Nearly a coin flip</td></tr>
+        </table>
+        <p>When a specific seed matchup hasn't occurred historically, the model falls back to a seed-difference formula. This model ignores individual team strength and relies purely on seeding.</p>
+
+        <h3>Starting Points</h3>
+        <p>The simulation can begin from different points in the tournament:</p>
+        <ul>
+            <li><strong>Pre-Tournament</strong>: Simulates all 63 games from scratch</li>
+            <li><strong>Current Results</strong>: Uses actual results so far, simulates remaining games only</li>
+            <li><strong>After Round 1/2/etc.</strong>: Uses actual results through that round, simulates the rest</li>
+        </ul>
+
+        <h3>Scenario Comparison (Suite)</h3>
+        <p>After each simulation run, a scenario suite automatically runs: one "Current" scenario plus one scenario for each 1-seed and 2-seed where that team is <strong>forced to win every game</strong>. This shows how each player's win probability shifts depending on which team wins the tournament.</p>
+
+        <h3>Force Tournament Winner</h3>
+        <p>The "Force Tournament Winner" dropdown overrides a single team to have 100% win probability in every game. This is useful for exploring "what if Duke wins it all?" scenarios and seeing how that changes the player standings.</p>
+    `;
+}
+
 // Load data on page load
 async function loadData() {
     try {
@@ -779,3 +859,5 @@ async function loadData() {
 }
 
 loadData();
+updateModelDesc();
+renderExplainer();

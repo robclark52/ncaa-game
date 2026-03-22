@@ -18,6 +18,7 @@
             <button class="nav-btn active" data-view="current">2026 Tournament</button>
             <button class="nav-btn" data-view="simulation">Simulation</button>
             <button class="nav-btn" data-view="history">History</button>
+            <button class="nav-btn" data-view="explainer">Model Explainer</button>
         </nav>
     </header>
 
@@ -81,8 +82,15 @@
         <section id="view-simulation" class="view">
             <div class="sim-controls">
                 <h2>Monte Carlo Simulation</h2>
-                <p class="sim-desc">Simulate the remaining tournament games using RPI-based win probabilities.</p>
+                <p class="sim-desc" id="model-desc">Simulate the remaining tournament games using RPI-based win probabilities.</p>
                 <div class="sim-options">
+                    <label>
+                        Model:
+                        <select id="sim-model">
+                            <option value="rpi">RPI Model</option>
+                            <option value="seed">Seed Model</option>
+                        </select>
+                    </label>
                     <label>
                         Starting point:
                         <select id="sim-start">
@@ -103,7 +111,7 @@
                             <option value="50000">50,000</option>
                         </select>
                     </label>
-                    <label>
+                    <label id="k-group">
                         RPI scaling factor (k):
                         <input type="number" id="sim-k" value="7" min="1" max="50" step="1">
                         <span class="help-text">Lower = fewer upsets</span>
@@ -174,6 +182,11 @@
                     </table>
                 </div>
             </div>
+        </section>
+
+        <!-- Model Explainer View -->
+        <section id="view-explainer" class="view">
+            <div class="explainer-content" id="explainer-content"></div>
         </section>
 
         <!-- History View -->
