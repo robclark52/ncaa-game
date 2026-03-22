@@ -1,4 +1,773 @@
 {
-  "lastUpdated": null,
-  "teams": {}
+  "lastUpdated": "2026-03-22T04:39:08.914Z",
+  "teams": {
+    "Arizona": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Michigan": {
+      "roundResults": [
+        5,
+        10,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 15
+    },
+    "Duke": {
+      "roundResults": [
+        5,
+        10,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 15
+    },
+    "Florida": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Purdue": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Iowa St.": {
+      "roundResults": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 0
+    },
+    "UConn": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Houston": {
+      "roundResults": [
+        5,
+        10,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 15
+    },
+    "Gonzaga": {
+      "roundResults": [
+        5,
+        0,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 5
+    },
+    "Virginia": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Michigan St.": {
+      "roundResults": [
+        5,
+        10,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 15
+    },
+    "Illinois": {
+      "roundResults": [
+        5,
+        10,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 15
+    },
+    "Arkansas": {
+      "roundResults": [
+        5,
+        10,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 15
+    },
+    "Alabama": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Kansas": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Nebraska": {
+      "roundResults": [
+        5,
+        10,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 15
+    },
+    "Wisconsin": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Texas Tech": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "St. John's": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Vanderbilt": {
+      "roundResults": [
+        5,
+        0,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 5
+    },
+    "BYU": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Tennessee": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Louisville": {
+      "roundResults": [
+        5,
+        0,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 5
+    },
+    "North Carolina": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Miami (FL)": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Kentucky": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "UCLA": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Saint Mary's": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Villanova": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Georgia": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Ohio St.": {
+      "roundResults": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 0
+    },
+    "Clemson": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Utah St.": {
+      "roundResults": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 0
+    },
+    "Saint Louis": {
+      "roundResults": [
+        5,
+        0,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 5
+    },
+    "TCU": {
+      "roundResults": [
+        5,
+        0,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 5
+    },
+    "Iowa": {
+      "roundResults": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 5
+    },
+    "Missouri": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Santa Clara": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "UCF": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Texas A&M": {
+      "roundResults": [
+        5,
+        0,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 5
+    },
+    "NC State / Texas": {
+      "roundResults": [
+        5,
+        10,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 15
+    },
+    "SMU / Miami (Ohio)": {
+      "roundResults": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 0
+    },
+    "South Florida": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "VCU": {
+      "roundResults": [
+        5,
+        0,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 5
+    },
+    "High Point": {
+      "roundResults": [
+        5,
+        0,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 5
+    },
+    "Akron": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Northern Iowa": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "McNeese": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Hawaii": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Hofstra": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Cal Baptist": {
+      "roundResults": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 0
+    },
+    "Troy": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Kennesaw St.": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Wright St.": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "North Dakota St.": {
+      "roundResults": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": false,
+      "knownPoints": 0
+    },
+    "Penn": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Queens (N.C.)": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Tennessee St.": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Furman": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Idaho": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Long Island": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Howard / UMBC": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Siena": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    },
+    "Lehigh / Prairie View A&M": {
+      "roundResults": [
+        0,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eliminated": true,
+      "knownPoints": 0
+    }
+  }
 }
