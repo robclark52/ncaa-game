@@ -501,14 +501,14 @@ function matchTeamName(espnName, espnSeed, auctionTeams) {
         }
     }
 
-    // 6. Fallback partial match but require word-boundary alignment
+    // 6. Fallback partial match using normalized names with word-boundary alignment
     for (const t of auctionTeams) {
-        const tLower = t.team.toLowerCase().trim();
-        if (tLower === lower) return t;
-        if (lower.length > tLower.length) {
-            if (lower.startsWith(tLower) && (lower[tLower.length] === ' ' || lower[tLower.length] === undefined)) return t;
-        } else if (tLower.length > lower.length) {
-            if (tLower.startsWith(lower) && (tLower[lower.length] === ' ' || tLower[lower.length] === undefined)) return t;
+        const tNorm = normalizeName(t.team);
+        if (tNorm === normalized) return t;
+        if (normalized.length > tNorm.length) {
+            if (normalized.startsWith(tNorm) && (normalized[tNorm.length] === ' ' || normalized[tNorm.length] === undefined)) return t;
+        } else if (tNorm.length > normalized.length) {
+            if (tNorm.startsWith(normalized) && (tNorm[normalized.length] === ' ' || tNorm[normalized.length] === undefined)) return t;
         }
     }
 
@@ -524,6 +524,14 @@ document.getElementById('update-results').addEventListener('click', async () => 
     try {
         const games = await fetchESPNResults();
         let updated = 0;
+
+        // Clear all round results first so we rebuild from ESPN as source of truth
+        for (const t of auctionData) {
+            t.roundResults = [null, null, null, null, null, null];
+            t.knownPoints = 0;
+            t.eliminated = false;
+            t.roundWins = 0;
+        }
 
         for (const event of games) {
             const comp = event.competitions[0];
