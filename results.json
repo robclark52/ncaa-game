@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-22T06:34:11.084Z",
+  "lastUpdated": "2026-03-22T18:45:35.832Z",
   "teams": {
     "Arizona": {
       "roundResults": [
@@ -52,14 +52,14 @@
     "Purdue": {
       "roundResults": [
         5,
-        null,
+        10,
         null,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 5
+      "knownPoints": 15
     },
     "Iowa St.": {
       "roundResults": [
@@ -292,13 +292,13 @@
     "Miami (FL)": {
       "roundResults": [
         5,
-        null,
+        0,
         null,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 5
     },
     "Kentucky": {
