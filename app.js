@@ -181,7 +181,6 @@ function renderAuctionTable(teams) {
         }).join('');
 
         tr.innerHTML = `
-            <td>${t.opener}</td>
             <td>${t.region}</td>
             <td>${t.seed}</td>
             <td>${t.eliminated ? '<span class="eliminated">' + t.team + '</span>' : t.team}</td>
