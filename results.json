@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-22T23:53:22.572Z",
+  "lastUpdated": "2026-03-23T01:37:54.184Z",
   "teams": {
     "Arizona": {
       "roundResults": [
@@ -40,13 +40,13 @@
     "Florida": {
       "roundResults": [
         5,
-        null,
+        0,
         null,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 5
     },
     "Purdue": {
@@ -112,13 +112,13 @@
     "Virginia": {
       "roundResults": [
         5,
-        null,
+        0,
         null,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 5
     },
     "Michigan St.": {
@@ -256,14 +256,14 @@
     "Tennessee": {
       "roundResults": [
         5,
-        null,
+        10,
         null,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 5
+      "knownPoints": 15
     },
     "Louisville": {
       "roundResults": [
@@ -424,14 +424,14 @@
     "Iowa": {
       "roundResults": [
         5,
-        null,
+        10,
         null,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 5
+      "knownPoints": 15
     },
     "Missouri": {
       "roundResults": [
