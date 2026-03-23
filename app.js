@@ -294,17 +294,25 @@ function renderSimSuite(suiteResults, mode) {
     thead.innerHTML = '';
     tbody.innerHTML = '';
 
+    // Determine which scenarios are for eliminated teams
+    const eliminatedScenarios = new Set();
+    for (const sc of scenarios) {
+        if (sc === 'Normal') continue;
+        const teamInfo = auctionData.find(t => t.team === sc);
+        if (teamInfo && teamInfo.eliminated) eliminatedScenarios.add(sc);
+    }
+
     // Header row: blank | scenario names
     let headerRow = '<tr><th></th>';
     for (const sc of scenarios) {
         const label = sc === 'Normal' ? baselineLabel : sc;
-        // Find owner for forced winner teams
         let ownerLabel = '';
         if (sc !== 'Normal') {
             const teamInfo = auctionData.find(t => t.team === sc);
-            if (teamInfo) ownerLabel = ` (${teamInfo.owner})`;
+            if (teamInfo && teamInfo.owner) ownerLabel = ` (${teamInfo.owner})`;
         }
-        headerRow += `<th colspan="2">${label}${ownerLabel}</th>`;
+        const elim = eliminatedScenarios.has(sc) ? ' style="color:var(--text-muted); text-decoration:line-through;"' : '';
+        headerRow += `<th colspan="2"${elim}>${label}${ownerLabel}</th>`;
     }
     headerRow += '</tr>';
 
@@ -321,10 +329,14 @@ function renderSimSuite(suiteResults, mode) {
         const colorClass = `owner-${player.toLowerCase()}`;
         let row = `<tr><td class="${colorClass}" style="font-weight:700;">${player}</td>`;
         for (const sc of scenarios) {
-            const r = suiteResults[sc];
-            const winPct = (r.playerWinPct[player] * 100).toFixed(1);
-            const ePts = r.playerExpectedPoints[player].toFixed(1);
-            row += `<td class="points-cell">${winPct}%</td><td>${ePts}</td>`;
+            if (eliminatedScenarios.has(sc)) {
+                row += '<td style="color:var(--text-muted);">—</td><td style="color:var(--text-muted);">—</td>';
+            } else {
+                const r = suiteResults[sc];
+                const winPct = (r.playerWinPct[player] * 100).toFixed(1);
+                const ePts = r.playerExpectedPoints[player].toFixed(1);
+                row += `<td class="points-cell">${winPct}%</td><td>${ePts}</td>`;
+            }
         }
         row += '</tr>';
         tbody.innerHTML += row;
