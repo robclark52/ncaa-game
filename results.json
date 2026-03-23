@@ -1,17 +1,17 @@
 {
-  "lastUpdated": "2026-03-23T01:37:54.184Z",
+  "lastUpdated": "2026-03-23T04:52:29.316Z",
   "teams": {
     "Arizona": {
       "roundResults": [
         5,
-        null,
+        10,
         null,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 5
+      "knownPoints": 15
     },
     "Michigan": {
       "roundResults": [
@@ -76,14 +76,14 @@
     "UConn": {
       "roundResults": [
         5,
-        null,
+        10,
         null,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 5
+      "knownPoints": 15
     },
     "Houston": {
       "roundResults": [
@@ -160,14 +160,14 @@
     "Alabama": {
       "roundResults": [
         5,
-        null,
+        10,
         null,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 5
+      "knownPoints": 15
     },
     "Kansas": {
       "roundResults": [
@@ -208,13 +208,13 @@
     "Texas Tech": {
       "roundResults": [
         5,
-        null,
+        0,
         null,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 5
     },
     "St. John's": {
@@ -316,13 +316,13 @@
     "UCLA": {
       "roundResults": [
         5,
-        null,
+        0,
         null,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 5
     },
     "Saint Mary's": {
@@ -388,13 +388,13 @@
     "Utah St.": {
       "roundResults": [
         5,
-        null,
+        0,
         null,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 5
     },
     "Saint Louis": {
