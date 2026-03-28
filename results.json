@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-28T02:05:49.124Z",
+  "lastUpdated": "2026-03-28T05:05:25.740Z",
   "teams": {
     "Arizona": {
       "roundResults": [
@@ -65,25 +65,25 @@
       "roundResults": [
         5,
         10,
-        null,
+        0,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 15
     },
     "UConn": {
       "roundResults": [
         5,
         10,
-        null,
+        15,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 15
+      "knownPoints": 30
     },
     "Houston": {
       "roundResults": [
@@ -125,12 +125,12 @@
       "roundResults": [
         5,
         10,
-        null,
+        0,
         null,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 15
     },
     "Illinois": {
@@ -257,13 +257,13 @@
       "roundResults": [
         5,
         10,
-        null,
+        15,
         null,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 15
+      "knownPoints": 30
     },
     "Louisville": {
       "roundResults": [
