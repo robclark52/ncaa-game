@@ -158,9 +158,10 @@ function simulateTournament(auctionData, k, forcedWinner, mode, model) {
     const shouldUseF4 = (mode === 'current' || (typeof mode === 'number' && mode >= 5));
     const shouldUseNCG = (mode === 'current' || (typeof mode === 'number' && mode >= 6));
 
-    // Final Four: standard NCAA cross-region pairings
-    const semi1 = playGame(f4[0], f4[3], 4, k, forcedWinner, shouldUseF4, model);
-    const semi2 = playGame(f4[1], f4[2], 4, k, forcedWinner, shouldUseF4, model);
+    // Final Four: 2026 NCAA cross-region pairings (E vs S, W vs MW)
+    // Regions: W=0, MW=1, E=2, S=3
+    const semi1 = playGame(f4[2], f4[3], 4, k, forcedWinner, shouldUseF4, model);
+    const semi2 = playGame(f4[0], f4[1], 4, k, forcedWinner, shouldUseF4, model);
 
     // Championship
     const champion = playGame(semi1, semi2, 5, k, forcedWinner, shouldUseNCG, model);
