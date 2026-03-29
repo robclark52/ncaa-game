@@ -1,17 +1,17 @@
 {
-  "lastUpdated": "2026-03-28T05:05:25.740Z",
+  "lastUpdated": "2026-03-29T03:49:16.774Z",
   "teams": {
     "Arizona": {
       "roundResults": [
         5,
         10,
         15,
-        null,
+        20,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 30
+      "knownPoints": 50
     },
     "Michigan": {
       "roundResults": [
@@ -54,11 +54,11 @@
         5,
         10,
         15,
-        null,
+        0,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 30
     },
     "Iowa St.": {
@@ -138,12 +138,12 @@
         5,
         10,
         15,
-        null,
+        20,
         null,
         null
       ],
       "eliminated": false,
-      "knownPoints": 30
+      "knownPoints": 50
     },
     "Arkansas": {
       "roundResults": [
@@ -426,11 +426,11 @@
         5,
         10,
         15,
-        null,
+        0,
         null,
         null
       ],
-      "eliminated": false,
+      "eliminated": true,
       "knownPoints": 30
     },
     "Missouri": {
